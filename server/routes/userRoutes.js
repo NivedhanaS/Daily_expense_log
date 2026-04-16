@@ -8,4 +8,5 @@ const {
 router.get("/", auth, getUserData);
 router.put("/", auth, updateUserData);
 
+
 module.exports = router;

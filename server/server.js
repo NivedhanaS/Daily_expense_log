@@ -11,7 +11,7 @@ const userRoutes = require("./routes/userRoutes");
 const app = express();
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: "*",
   credentials: true
 }));
 app.use(express.json());
@@ -21,7 +21,7 @@ app.use("/api/expenses", expenseRoutes);
 
 app.use("/api/user", userRoutes);
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Atlas Connected"))
+  .then(() => {console.log("MongoDB Atlas Connected");})
   .catch(err => console.log(err));
 app.post("/api/ai-insight", async (req, res) => {
   try {
@@ -45,4 +45,8 @@ app.post("/api/ai-insight", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-app.listen(5000, () => console.log("Server running on port 5000"));
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log("Server running on port", PORT);
+});

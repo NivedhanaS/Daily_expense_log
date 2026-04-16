@@ -4,7 +4,7 @@ const userSchema= new mongoose.Schema({
     name:String,
     email: {type : String,unique:true },
     password:String,
-    income: { type: Number, default: 0 },
+    income: { type: Number, default: 10000 },
     savingGoal: { type: Number, default: 20 },
     },{timestamps:true});
 

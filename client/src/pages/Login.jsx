@@ -31,17 +31,45 @@ const handleLogin = async () => {
 };
 
 return (
-    <div style={{ padding: 230 }}>
-      <h2>Login</h2>
+  <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
 
-      <input className="p-2 mr-2 rounded bg-gray-100 dark:bg-gray-800 text-black dark:text-white" placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
-      <br /><br />
+    <div className="w-full max-w-md bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
 
-      <input type="password" className="p-2 mr-2 rounded bg-gray-100 dark:bg-gray-800 text-black dark:text-white" placeholder="Password"
-        onChange={(e) => setPassword(e.target.value)} />
-      <br /><br />
+      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-white">
+        Login
+      </h2>
 
-      <button  className="bg-purple-500 px-4 py-2 rounded text-white" onClick={handleLogin}>Login</button>
+      <input
+        className="w-full mb-4 p-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-black dark:text-white outline-none"
+        placeholder="Email"
+        onChange={(e) => setEmail(e.target.value)}
+      />
+
+      <input
+        type="password"
+        className="w-full mb-4 p-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-black dark:text-white outline-none"
+        placeholder="Password"
+        onChange={(e) => setPassword(e.target.value)}
+      />
+
+      <button
+        className="w-full bg-purple-500 hover:bg-purple-600 py-3 rounded-lg text-white font-semibold"
+        onClick={handleLogin}
+      >
+        Login
+      </button>
+
+      <p className="text-sm mt-4 text-center text-gray-600 dark:text-gray-300">
+        Don't have an account?{" "}
+        <span
+          className="text-purple-500 cursor-pointer"
+          onClick={() => navigate("/register")}
+        >
+          Sign up
+        </span>
+      </p>
+
     </div>
-  );
+  </div>
+);
 }

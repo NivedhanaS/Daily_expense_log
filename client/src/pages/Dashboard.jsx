@@ -4,6 +4,7 @@ import Layout from "../components/Layout";
 
 export default function Dashboard() {
   const [expenses, setExpenses] = useState([]);
+
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [note, setNote] = useState("");
@@ -21,20 +22,28 @@ export default function Dashboard() {
 
   // 🔹 FETCH EXPENSES
   const fetchExpenses = async () => {
-    const res = await axios.get("http://localhost:5000/api/expenses", {
-      headers: { Authorization: token },
-    });
-    setExpenses(res.data);
+    try {
+      const res = await axios.get("http://localhost:5000/api/expenses", {
+        headers: { Authorization: token },
+      });
+      setExpenses(res.data);
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   // 🔹 FETCH USER
   const fetchUser = async () => {
-    const res = await axios.get("http://localhost:5000/api/user", {
-      headers: { Authorization: token },
-    });
+    try {
+      const res = await axios.get("http://localhost:5000/api/user", {
+        headers: { Authorization: token },
+      });
 
-    setIncome(res.data.income || 0);
-    setSavingGoal(res.data.savingGoal || 20);
+      setIncome(res.data.income || 0);
+      setSavingGoal(res.data.savingGoal || 20);
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   useEffect(() => {
@@ -42,21 +51,32 @@ export default function Dashboard() {
     fetchUser();
   }, []);
 
-  // 🔹 SAVE USER DATA (COMMON)
+  // 🔹 SAVE USER DATA (FIXED)
   const saveUserData = async (newIncome, newGoal) => {
-    await axios.put(
-      "http://localhost:5000/api/user",
-      {
-        income: newIncome,
-        savingGoal: newGoal,
-      },
-      {
-        headers: { Authorization: token },
-      }
-    );
+    try {
+      const res = await axios.put(
+        "http://localhost:5000/api/user",
+        {
+          income: newIncome,
+          savingGoal: newGoal,
+        },
+        {
+          headers: { Authorization: token },
+        }
+      );
 
-    setIncome(newIncome);
-    setSavingGoal(newGoal);
+      // ✅ update from backend response
+      setIncome(res.data.income);
+      setSavingGoal(res.data.savingGoal);
+
+      // optional refresh
+      await fetchUser();
+
+      alert("Saved successfully ✅");
+    } catch (err) {
+      console.error(err);
+      alert("Save failed ❌");
+    }
   };
 
   // 🔹 SAVE INCOME
@@ -73,24 +93,36 @@ export default function Dashboard() {
 
   // 🔹 ADD EXPENSE
   const addExpense = async () => {
-    await axios.post(
-      "http://localhost:5000/api/expenses",
-      { amount, category, note, date: new Date() },
-      { headers: { Authorization: token } }
-    );
+    try {
+      await axios.post(
+        "http://localhost:5000/api/expenses",
+        { amount, category, note, date: new Date() },
+        { headers: { Authorization: token } }
+      );
 
-    setAmount("");
-    setCategory("");
-    setNote("");
-    fetchExpenses();
+      setAmount("");
+      setCategory("");
+      setNote("");
+
+      fetchExpenses();
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   // 🔹 DELETE
   const deleteExpense = async (id) => {
-    await axios.delete(`http://localhost:5000/api/expenses/${id}`, {
-      headers: { Authorization: token },
-    });
-    fetchExpenses();
+    try {
+      await axios.delete(
+        `http://localhost:5000/api/expenses/${id}`,
+        {
+          headers: { Authorization: token },
+        }
+      );
+      fetchExpenses();
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   // 🔹 STATS
@@ -154,7 +186,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* 🔹 INCOME + SAVING */}
+      {/* 🔹 INCOME + GOAL */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
         {/* INCOME */}
@@ -166,7 +198,9 @@ export default function Dashboard() {
               <input
                 type="number"
                 value={tempIncome}
-                onChange={(e) => setTempIncome(e.target.value)}
+                onChange={(e) =>
+                  setTempIncome(Number(e.target.value))
+                }
                 className="p-2 rounded bg-gray-100 dark:bg-gray-800 w-full"
               />
               <button
@@ -192,7 +226,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* SAVING GOAL */}
+        {/* GOAL */}
         <div className="p-5 rounded-2xl bg-lightCard dark:bg-darkCard shadow">
           <p className="text-gray-400 text-sm mb-2">Saving Goal (%)</p>
 
@@ -201,7 +235,9 @@ export default function Dashboard() {
               <input
                 type="number"
                 value={tempGoal}
-                onChange={(e) => setTempGoal(e.target.value)}
+                onChange={(e) =>
+                  setTempGoal(Number(e.target.value))
+                }
                 className="p-2 rounded bg-gray-100 dark:bg-gray-800 w-full"
               />
               <button

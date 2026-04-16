@@ -4,7 +4,7 @@ exports.addExpense = async (req, res) => {
   try {
     const expense = await Expense.create({
       ...req.body,
-      userId: req.userId,
+      user: req.userId,
     });
 
     res.json(expense);
@@ -15,7 +15,7 @@ exports.addExpense = async (req, res) => {
 
 exports.getExpenses = async (req, res) => {
   try {
-    const expenses = await Expense.find({ userId: req.userId }).sort({ date: -1 });
+    const expenses = await Expense.find({ user: req.userId }).sort({ date: -1 });
     res.json(expenses);
   } catch (err) {
     res.status(500).json(err.message);

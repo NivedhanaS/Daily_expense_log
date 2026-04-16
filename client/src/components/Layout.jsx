@@ -53,8 +53,19 @@ export default function Layout({ children, onExport }) {
             >
               {dark ? "☀️" : "🌙"}
             </button>
-          </div>
         </div>
+        {/* ADD LOGOUT HERE */}
+        <div className="flex justify-between items-center p-4"><button
+        onClick={() => {
+          localStorage.removeItem("token");
+          window.location.href = "/";
+        }}
+        className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-white text-sm"
+      >
+        Logout
+      </button>
+    </div>
+  </div>
 
         {/* CONTENT */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6">

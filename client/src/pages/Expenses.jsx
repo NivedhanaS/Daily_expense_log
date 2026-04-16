@@ -27,7 +27,6 @@ export default function Expenses() {
     fetchExpenses();
   };
 
-  // 🔹 FILTER LOGIC
   const filtered = expenses.filter((e) => {
     return (
       e.note.toLowerCase().includes(search.toLowerCase()) &&
@@ -35,64 +34,81 @@ export default function Expenses() {
     );
   });
 
-  // 🔹 UNIQUE CATEGORIES
   const categories = [...new Set(expenses.map((e) => e.category))];
 
   return (
     <Layout>
-      <h1 className="text-2xl font-bold mb-6">Expenses</h1>
+      <div className="max-w-6xl mx-auto">
 
-      {/* 🔍 SEARCH + FILTER */}
-      <div className="flex gap-3 mb-6">
-        <input
-          placeholder="Search note..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="p-2 rounded bg-gray-100 dark:bg-gray-800 text-black dark:text-white"
-        />
+        <h1 className="text-2xl font-bold mb-6">Expenses</h1>
 
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="p-2 rounded bg-gray-100 dark:bg-gray-800 text-black dark:text-white"
-        >
-          <option value="">All Categories</option>
-          {categories.map((c) => (
-            <option key={c}>{c}</option>
-          ))}
-        </select>
-      </div>
+        {/* SEARCH */}
+        <div className="flex flex-wrap gap-3 mb-6">
+          <input
+            placeholder="Search notes..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 w-full md:w-64"
+          />
 
-      {/* 📊 TABLE */}
-      <div className="w-full text-sm bg-lightCard dark:bg-darkCard shadow">
-        <table className="text-gray-400">
-          <thead>
-            <tr className="text-left p-2">
-              <th>Amount</th>
-              <th>Category</th>
-              <th>Note</th>
-              <th></th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {filtered.map((e) => (
-              <tr key={e._id} className="border-t border-gray-700 ">
-                <td className="p-2">₹{e.amount}</td>
-                <td className="p-2 capitalize">{e.category}</td>
-                <td className="p-2">{e.note}</td>
-                <td className="p-2 text-right">
-                  <button
-                    onClick={() => deleteExpense(e._id)}
-                    className="text-red-400 hover:text-red-600"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800"
+          >
+            <option value="">All Categories</option>
+            {categories.map((c) => (
+              <option key={c}>{c}</option>
             ))}
-          </tbody>
-        </table>
+          </select>
+        </div>
+
+        {/* TABLE */}
+        <div className="bg-lightCard dark:bg-darkCard rounded-xl shadow overflow-hidden">
+
+          <table className="w-full text-sm">
+
+            <thead className="bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+              <tr>
+                <th className="p-3 text-left">Amount</th>
+                <th className="p-3 text-left">Category</th>
+                <th className="p-3 text-left">Note</th>
+                <th className="p-3"></th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {filtered.map((e) => (
+                <tr
+                  key={e._id}
+                  className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  <td className="p-3 font-semibold">₹{e.amount}</td>
+
+                  <td className="p-3 capitalize">
+                    <span className="px-2 py-1 rounded bg-purple-100 text-purple-600 text-xs">
+                      {e.category}
+                    </span>
+                  </td>
+
+                  <td className="p-3 text-gray-500">{e.note}</td>
+
+                  <td className="p-3 text-right">
+                    <button
+                      onClick={() => deleteExpense(e._id)}
+                      className="text-red-500 hover:text-red-700 text-xs"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+
+          </table>
+
+        </div>
+
       </div>
     </Layout>
   );
