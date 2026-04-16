@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Layout from "../components/Layout";
+
 import {
   Chart as ChartJS,
   ArcElement,
@@ -22,55 +23,16 @@ ChartJS.register(
   BarElement
 );
 
-
 export default function Dashboard() {
   const [expenses, setExpenses] = useState([]);
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [note, setNote] = useState("");
+  const [budget, setBudget] = useState(5000);
+
   const token = localStorage.getItem("token");
 
-//  PIE CHART DATA
-const categoryData = {};
-expenses.forEach((e) => {
-  categoryData[e.category] =
-    (categoryData[e.category] || 0) + Number(e.amount);
-});
-
-const pieData = {
-  labels: Object.keys(categoryData),
-  datasets: [
-    {
-      data: Object.values(categoryData),
-      backgroundColor: ["#7c6af7", "#22d3ee", "#f87171", "#34d399"],
-    },
-  ],
-};
-
-//  BAR CHART DATA
-const barData = {
-  labels: expenses.map((_, i) => `#${i + 1}`),
-  datasets: [
-    {
-      label: "Expenses",
-      data: expenses.map((e) => e.amount),
-      backgroundColor: "#7c6af7",
-    },
-  ],
-};
-
-  //to calc real stats STAT CARDS
-const total = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
-
-const categories = {};
-expenses.forEach((e) => {
-  categories[e.category] = (categories[e.category] || 0) + e.amount;
-});
-
-const topCategory = Object.keys(categories).reduce(
-  (a, b) => (categories[a] > categories[b] ? a : b),
-  "None"
-);
+  // 🔹 FETCH
   const fetchExpenses = async () => {
     const res = await axios.get("http://localhost:5000/api/expenses", {
       headers: { Authorization: token },
@@ -82,141 +44,162 @@ const topCategory = Object.keys(categories).reduce(
     fetchExpenses();
   }, []);
 
+  // 🔹 ADD
   const addExpense = async () => {
     await axios.post(
       "http://localhost:5000/api/expenses",
-      {
-        amount,
-        category,
-        note,
-        date: new Date(),
-      },
+      { amount, category, note, date: new Date() },
       { headers: { Authorization: token } }
     );
 
     setAmount("");
     setCategory("");
     setNote("");
-
     fetchExpenses();
   };
 
+  // 🔹 DELETE
   const deleteExpense = async (id) => {
     await axios.delete(`http://localhost:5000/api/expenses/${id}`, {
       headers: { Authorization: token },
     });
-
     fetchExpenses();
   };
 
-  return (
-    <Layout>
-      {/* 🔹 STAT CARDS */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+  // 🔹 STATS
+  const total = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+  const remaining = budget - total;
+  const percentUsed = Math.min((total / budget) * 100, 100);
 
+  const categories = {};
+  expenses.forEach((e) => {
+    categories[e.category] = (categories[e.category] || 0) + e.amount;
+  });
+
+  const topCategory =
+    Object.keys(categories).length > 0
+      ? Object.keys(categories).reduce((a, b) =>
+          categories[a] > categories[b] ? a : b
+        )
+      : "None";
+
+  // 🔹 INSIGHT
+  let insight = "";
+  if (total > budget) insight = "⚠️ You exceeded your budget!";
+  else if (percentUsed > 75)
+    insight = "⚠️ You are close to your budget limit.";
+  else insight = "✅ Your spending is under control.";
+
+  // 🔹 PIE
+  const pieData = {
+    labels: Object.keys(categories),
+    datasets: [
+      {
+        data: Object.values(categories),
+        backgroundColor: ["#7c6af7", "#22d3ee", "#f87171", "#34d399"],
+      },
+    ],
+  };
+
+  // 🔹 BAR
+  const barData = {
+    labels: expenses.map((_, i) => `#${i + 1}`),
+    datasets: [
+      {
+        label: "Expenses",
+        data: expenses.map((e) => e.amount),
+        backgroundColor: "#7c6af7",
+      },
+    ],
+  };
+ 
+
+  //  CSV
+  const exportCSV = () => {
+    const rows = [
+      ["Amount", "Category", "Note"],
+      ...expenses.map((e) => [e.amount, e.category, e.note]),
+    ];
+
+    const csv = rows.map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "expenses.csv";
+    a.click();
+  };
+  return (
+    <Layout onExport={exportCSV}>
+<h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+      {/* STAT CARDS */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="p-4 rounded-lg bg-lightCard dark:bg-darkCard shadow">
-          <h3 className="text-sm text-gray-400">Total Spent</h3>
+          <h3>Total Spent</h3>
           <p className="text-xl font-bold">₹{total}</p>
         </div>
 
         <div className="p-4 rounded-lg bg-lightCard dark:bg-darkCard shadow">
-          <h3 className="text-sm text-gray-400">Transactions</h3>
+          <h3>Transactions</h3>
           <p className="text-xl font-bold">{expenses.length}</p>
         </div>
 
         <div className="p-4 rounded-lg bg-lightCard dark:bg-darkCard shadow">
-          <h3 className="text-sm text-gray-400">Top Category</h3>
+          <h3>Top Category</h3>
           <p className="text-xl font-bold">{topCategory}</p>
         </div>
-
       </div>
 
-{/*  CHARTS */}
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-<div className="p-4 rounded-lg bg-lightCard dark:bg-darkCard shadow">
-  <h3 className="mb-2 font-semibold">Category Breakdown</h3>
+      {/* BUDGET */}
+      <div className="p-4 rounded-lg bg-lightCard dark:bg-darkCard shadow mb-6">
+        <p>₹{remaining} remaining</p>
+        <div className="w-full h-3 bg-gray-300 rounded">
+          <div
+            className="h-3 bg-purple-500"
+            style={{ width: `${percentUsed}%` }}
+          />
+        </div>
+      </div>
 
-  <div className="h-64 flex items-center justify-center ">
-    <Pie data={pieData} options={{ maintainAspectRatio: false }} />
-  </div>
-</div>
-<div className="p-4 rounded-lg bg-lightCard dark:bg-darkCard shadow">
-  <h3 className="mb-2 font-semibold">Expenses Overview</h3>
-
-  <div className="h-64 flex items-center justify-center">
-    <Bar data={barData} options={{ maintainAspectRatio: false }} />
-  </div>
-</div>
-</div>
+      {/* INSIGHT */}
+      <div className="p-4 rounded-lg bg-purple-100 dark:bg-purple-900 mb-6">
+        {insight}
+      </div>
 
 
-      {/* ADD EXPENSE */}
+      {/* FORM */}
       <div className="mb-4">
         <input
-          className="  p-4 rounded-lg
-  bg-lightCard dark:bg-darkCard
-  shadow"
-          placeholder="Amount"
+          className="p-2 mr-2 bg-gray-100 dark:bg-gray-800"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
+          placeholder="Amount"
         />
         <input
-          className="  p-4 rounded-lg
-  bg-lightCard dark:bg-darkCard
-  shadow"
-          placeholder="Category"
+          className="p-2 mr-2 bg-gray-100 dark:bg-gray-800"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
+          placeholder="Category"
         />
         <input
-          className="  p-4 rounded-lg
-  bg-lightCard dark:bg-darkCard
-  shadow"
-          placeholder="Note"
+          className="p-2 mr-2 bg-gray-100 dark:bg-gray-800"
           value={note}
           onChange={(e) => setNote(e.target.value)}
+          placeholder="Note"
         />
-        <button
-          className="p-4 rounded-lg bg-lightCard dark:bg-darkCard shadow mb-6"
-          onClick={addExpense}
-        >
+        <button onClick={addExpense} className="bg-purple-500 px-3 py-2">
           Add
         </button>
       </div>
 
-      {/* EXPENSE TABLE */}
-     <div className="p-4 rounded-lg bg-lightCard dark:bg-darkCard shadow">
-  <h2 className="mb-3 font-semibold">Recent Expenses</h2>
-
-  <table className="w-full text-sm">
-    <thead>
-      <tr className="text-left text-gray-400">
-        <th>Amount</th>
-        <th>Category</th>
-        <th>Note</th>
-        <th></th>
-      </tr>
-    </thead>
-
-    <tbody>
+      {/* TABLE */}
       {expenses.map((e) => (
-        <tr key={e._id} className="border-t border-gray-700">
-          <td>₹{e.amount}</td>
-          <td>{e.category}</td>
-          <td>{e.note}</td>
-          <td>
-            <button
-              className="text-red-400"
-              onClick={() => deleteExpense(e._id)}
-            >
-              Delete
-            </button>
-          </td>
-        </tr>
+        <div key={e._id}>
+          ₹{e.amount} - {e.category}
+          <button   className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs" onClick={() => deleteExpense(e._id)}>Delete</button>
+        </div>
       ))}
-    </tbody>
-  </table>
-</div>
     </Layout>
   );
 }
