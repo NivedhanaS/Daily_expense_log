@@ -64,10 +64,10 @@ export default function Expenses() {
       </div>
 
       {/* 📊 TABLE */}
-      <div className="p-4 rounded-lg bg-lightCard dark:bg-darkCard shadow">
-        <table className="w-full text-sm">
+      <div className="w-full text-sm bg-lightCard dark:bg-darkCard shadow">
+        <table className="text-gray-400">
           <thead>
-            <tr className="text-left text-gray-400">
+            <tr className="text-left p-2">
               <th>Amount</th>
               <th>Category</th>
               <th>Note</th>
@@ -77,14 +77,14 @@ export default function Expenses() {
 
           <tbody>
             {filtered.map((e) => (
-              <tr key={e._id} className="border-t border-gray-700">
-                <td>₹{e.amount}</td>
-                <td>{e.category}</td>
-                <td>{e.note}</td>
-                <td>
+              <tr key={e._id} className="border-t border-gray-700 ">
+                <td className="p-2">₹{e.amount}</td>
+                <td className="p-2 capitalize">{e.category}</td>
+                <td className="p-2">{e.note}</td>
+                <td className="p-2 text-right">
                   <button
                     onClick={() => deleteExpense(e._id)}
-                    className="text-red-400"
+                    className="text-red-400 hover:text-red-600"
                   >
                     Delete
                   </button>

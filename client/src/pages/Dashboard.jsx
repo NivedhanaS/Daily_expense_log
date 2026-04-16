@@ -2,37 +2,24 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Layout from "../components/Layout";
 
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-} from "chart.js";
-
-import { Pie, Bar } from "react-chartjs-2";
-
-ChartJS.register(
-  ArcElement,
-  Tooltip,
-  Legend,
-  CategoryScale,
-  LinearScale,
-  BarElement
-);
-
 export default function Dashboard() {
   const [expenses, setExpenses] = useState([]);
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [note, setNote] = useState("");
-  const [budget, setBudget] = useState(5000);
+
+  const [income, setIncome] = useState(0);
+  const [savingGoal, setSavingGoal] = useState(20);
+
+  const [editIncome, setEditIncome] = useState(false);
+  const [tempIncome, setTempIncome] = useState(0);
+
+  const [editGoal, setEditGoal] = useState(false);
+  const [tempGoal, setTempGoal] = useState(20);
 
   const token = localStorage.getItem("token");
 
-  // 🔹 FETCH
+  // 🔹 FETCH EXPENSES
   const fetchExpenses = async () => {
     const res = await axios.get("http://localhost:5000/api/expenses", {
       headers: { Authorization: token },
@@ -40,11 +27,51 @@ export default function Dashboard() {
     setExpenses(res.data);
   };
 
+  // 🔹 FETCH USER
+  const fetchUser = async () => {
+    const res = await axios.get("http://localhost:5000/api/user", {
+      headers: { Authorization: token },
+    });
+
+    setIncome(res.data.income || 0);
+    setSavingGoal(res.data.savingGoal || 20);
+  };
+
   useEffect(() => {
     fetchExpenses();
+    fetchUser();
   }, []);
 
-  // 🔹 ADD
+  // 🔹 SAVE USER DATA (COMMON)
+  const saveUserData = async (newIncome, newGoal) => {
+    await axios.put(
+      "http://localhost:5000/api/user",
+      {
+        income: newIncome,
+        savingGoal: newGoal,
+      },
+      {
+        headers: { Authorization: token },
+      }
+    );
+
+    setIncome(newIncome);
+    setSavingGoal(newGoal);
+  };
+
+  // 🔹 SAVE INCOME
+  const handleSaveIncome = async () => {
+    await saveUserData(Number(tempIncome), savingGoal);
+    setEditIncome(false);
+  };
+
+  // 🔹 SAVE GOAL
+  const handleSaveGoal = async () => {
+    await saveUserData(income, Number(tempGoal));
+    setEditGoal(false);
+  };
+
+  // 🔹 ADD EXPENSE
   const addExpense = async () => {
     await axios.post(
       "http://localhost:5000/api/expenses",
@@ -68,12 +95,11 @@ export default function Dashboard() {
 
   // 🔹 STATS
   const total = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
-  const remaining = budget - total;
-  const percentUsed = Math.min((total / budget) * 100, 100);
 
   const categories = {};
   expenses.forEach((e) => {
-    categories[e.category] = (categories[e.category] || 0) + e.amount;
+    categories[e.category] =
+      (categories[e.category] || 0) + Number(e.amount);
   });
 
   const topCategory =
@@ -83,38 +109,11 @@ export default function Dashboard() {
         )
       : "None";
 
-  // 🔹 INSIGHT
-  let insight = "";
-  if (total > budget) insight = "⚠️ You exceeded your budget!";
-  else if (percentUsed > 75)
-    insight = "⚠️ You are close to your budget limit.";
-  else insight = "✅ Your spending is under control.";
+  // 🔹 AI CALCULATION
+  const suggestedSavings = (income * savingGoal) / 100;
+  const actualSavings = income - total;
 
-  // 🔹 PIE
-  const pieData = {
-    labels: Object.keys(categories),
-    datasets: [
-      {
-        data: Object.values(categories),
-        backgroundColor: ["#7c6af7", "#22d3ee", "#f87171", "#34d399"],
-      },
-    ],
-  };
-
-  // 🔹 BAR
-  const barData = {
-    labels: expenses.map((_, i) => `#${i + 1}`),
-    datasets: [
-      {
-        label: "Expenses",
-        data: expenses.map((e) => e.amount),
-        backgroundColor: "#7c6af7",
-      },
-    ],
-  };
- 
-
-  //  CSV
+  // 🔹 CSV EXPORT
   const exportCSV = () => {
     const rows = [
       ["Amount", "Category", "Note"],
@@ -130,76 +129,159 @@ export default function Dashboard() {
     a.download = "expenses.csv";
     a.click();
   };
+
   return (
     <Layout onExport={exportCSV}>
-<h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-      {/* STAT CARDS */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="p-4 rounded-lg bg-lightCard dark:bg-darkCard shadow">
-          <h3>Total Spent</h3>
-          <p className="text-xl font-bold">₹{total}</p>
+      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+
+      {/* 🔹 CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="p-5 rounded-2xl bg-lightCard dark:bg-darkCard shadow">
+          <p className="text-gray-400 text-sm">Total Spent</p>
+          <h2 className="text-2xl font-bold">₹{total}</h2>
         </div>
 
-        <div className="p-4 rounded-lg bg-lightCard dark:bg-darkCard shadow">
-          <h3>Transactions</h3>
-          <p className="text-xl font-bold">{expenses.length}</p>
+        <div className="p-5 rounded-2xl bg-lightCard dark:bg-darkCard shadow">
+          <p className="text-gray-400 text-sm">Transactions</p>
+          <h2 className="text-2xl font-bold">{expenses.length}</h2>
         </div>
 
-        <div className="p-4 rounded-lg bg-lightCard dark:bg-darkCard shadow">
-          <h3>Top Category</h3>
-          <p className="text-xl font-bold">{topCategory}</p>
+        <div className="p-5 rounded-2xl bg-lightCard dark:bg-darkCard shadow">
+          <p className="text-gray-400 text-sm">Top Category</p>
+          <h2 className="text-2xl font-bold capitalize">
+            {topCategory}
+          </h2>
         </div>
       </div>
 
-      {/* BUDGET */}
-      <div className="p-4 rounded-lg bg-lightCard dark:bg-darkCard shadow mb-6">
-        <p>₹{remaining} remaining</p>
-        <div className="w-full h-3 bg-gray-300 rounded">
-          <div
-            className="h-3 bg-purple-500"
-            style={{ width: `${percentUsed}%` }}
+      {/* 🔹 INCOME + SAVING */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+
+        {/* INCOME */}
+        <div className="p-5 rounded-2xl bg-lightCard dark:bg-darkCard shadow">
+          <p className="text-gray-400 text-sm mb-2">Monthly Income</p>
+
+          {editIncome ? (
+            <div className="flex gap-2">
+              <input
+                type="number"
+                value={tempIncome}
+                onChange={(e) => setTempIncome(e.target.value)}
+                className="p-2 rounded bg-gray-100 dark:bg-gray-800 w-full"
+              />
+              <button
+                onClick={handleSaveIncome}
+                className="bg-green-500 px-3 rounded text-white"
+              >
+                Save
+              </button>
+            </div>
+          ) : (
+            <div className="flex justify-between">
+              <h2 className="text-xl font-bold">₹{income}</h2>
+              <button
+                onClick={() => {
+                  setTempIncome(income);
+                  setEditIncome(true);
+                }}
+                className="text-primary text-sm"
+              >
+                Edit
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* SAVING GOAL */}
+        <div className="p-5 rounded-2xl bg-lightCard dark:bg-darkCard shadow">
+          <p className="text-gray-400 text-sm mb-2">Saving Goal (%)</p>
+
+          {editGoal ? (
+            <div className="flex gap-2">
+              <input
+                type="number"
+                value={tempGoal}
+                onChange={(e) => setTempGoal(e.target.value)}
+                className="p-2 rounded bg-gray-100 dark:bg-gray-800 w-full"
+              />
+              <button
+                onClick={handleSaveGoal}
+                className="bg-green-500 px-3 rounded text-white"
+              >
+                Save
+              </button>
+            </div>
+          ) : (
+            <div className="flex justify-between">
+              <h2 className="text-xl font-bold">{savingGoal}%</h2>
+              <button
+                onClick={() => {
+                  setTempGoal(savingGoal);
+                  setEditGoal(true);
+                }}
+                className="text-primary text-sm"
+              >
+                Edit
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 🔹 AI INSIGHT */}
+      <div className="p-6 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white mb-6">
+        <h3 className="font-semibold mb-3">AI Financial Insight</h3>
+
+        <p>💰 Income: ₹{income}</p>
+        <p>💸 Expenses: ₹{total}</p>
+        <p>🎯 Target Savings: ₹{suggestedSavings}</p>
+        <p>📈 Actual Savings: ₹{actualSavings}</p>
+
+        {actualSavings < suggestedSavings ? (
+          <p className="text-yellow-200 mt-2">
+            ⚠️ Below saving goal
+          </p>
+        ) : (
+          <p className="text-green-200 mt-2">
+            ✅ You're saving well
+          </p>
+        )}
+      </div>
+
+      {/* 🔹 ADD EXPENSE */}
+      <div className="p-5 rounded-xl bg-lightCard dark:bg-darkCard shadow mb-6">
+        <p className="font-semibold mb-3">Add Expense</p>
+
+        <div className="flex flex-col md:flex-row gap-2">
+          <input
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="Amount"
+            className="p-2 rounded bg-gray-100 dark:bg-gray-800"
           />
+
+          <input
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            placeholder="Category"
+            className="p-2 rounded bg-gray-100 dark:bg-gray-800"
+          />
+
+          <input
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Note"
+            className="p-2 rounded bg-gray-100 dark:bg-gray-800"
+          />
+
+          <button
+            onClick={addExpense}
+            className="bg-primary px-4 py-2 rounded text-white"
+          >
+            Add
+          </button>
         </div>
       </div>
-
-      {/* INSIGHT */}
-      <div className="p-4 rounded-lg bg-purple-100 dark:bg-purple-900 mb-6">
-        {insight}
-      </div>
-
-
-      {/* FORM */}
-      <div className="mb-4">
-        <input
-          className="p-2 mr-2 bg-gray-100 dark:bg-gray-800"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          placeholder="Amount"
-        />
-        <input
-          className="p-2 mr-2 bg-gray-100 dark:bg-gray-800"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          placeholder="Category"
-        />
-        <input
-          className="p-2 mr-2 bg-gray-100 dark:bg-gray-800"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="Note"
-        />
-        <button onClick={addExpense} className="bg-purple-500 px-3 py-2">
-          Add
-        </button>
-      </div>
-
-      {/* TABLE */}
-      {expenses.map((e) => (
-        <div key={e._id}>
-          ₹{e.amount} - {e.category}
-          <button   className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs" onClick={() => deleteExpense(e._id)}>Delete</button>
-        </div>
-      ))}
     </Layout>
   );
 }
