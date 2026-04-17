@@ -24,7 +24,7 @@ export default function Dashboard() {
   const fetchExpenses = async () => {
     try {
       const res = await axios.get("https://daily-expense-log.onrender.com/api/expenses", {
-        headers: { Authorization: token },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setExpenses(res.data);
     } catch (err) {
@@ -36,7 +36,7 @@ export default function Dashboard() {
   const fetchUser = async () => {
     try {
       const res = await axios.get("https://daily-expense-log.onrender.com/api/user", {
-        headers: { Authorization: token },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       setIncome(res.data.income || 0);

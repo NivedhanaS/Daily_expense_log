@@ -34,7 +34,7 @@ export default function Analytics() {
 
   const fetchExpenses = async () => {
     const res = await axios.get("https://daily-expense-log.onrender.com/api/expenses", {
-      headers: { Authorization: token },
+      headers: { Authorization: `Bearer ${token}` },
     });
     setExpenses(res.data);
   };
