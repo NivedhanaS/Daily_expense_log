@@ -94,23 +94,26 @@ export default function Dashboard() {
   // 🔹 ADD EXPENSE
   const addExpense = async () => {
 
-
     console.log("🔥 ADD HIT");
 
     try {
       await axios.post(
-        "https://daily-expense-log.onrender.com/api/expenses",data,
+        "https://daily-expense-log.onrender.com/api/expenses",
         { amount, category, note, date: new Date() },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      
+    console.log("RESPONSE:", res.data); 
       setAmount("");
       setCategory("");
       setNote("");
 
       fetchExpenses();
     } catch (err) {
-      console.log(err);
+      console.log("ADD ERROR:", err.response?.data || err.message 
+        
+      );
     }
   };
 
