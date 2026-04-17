@@ -92,30 +92,27 @@ export default function Dashboard() {
   };
 
   // 🔹 ADD EXPENSE
-  const addExpense = async () => {
+const addExpense = async () => {
+  console.log("Trying to add");
 
-    console.log("🔥 ADD HIT");
+  try {
+    const res = await axios.post(
+      "https://daily-expense-log.onrender.com/api/expenses",
+      { amount, category, note, date: new Date() },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-    try {
-      await axios.post(
-        "https://daily-expense-log.onrender.com/api/expenses",
-        { amount, category, note, date: new Date() },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+    console.log("RESPONSE:", res.data); // ✅ now works
 
-      
-    console.log("RESPONSE:", res.data); 
-      setAmount("");
-      setCategory("");
-      setNote("");
+    setAmount("");
+    setCategory("");
+    setNote("");
 
-      fetchExpenses();
-    } catch (err) {
-      console.log("ADD ERROR:", err.response?.data || err.message 
-
-      );
-    }
-  };
+    fetchExpenses();
+  } catch (err) {
+    console.log("ADD ERROR:", err.response?.data || err.message);
+  }
+};
 
   // 🔹 DELETE
   const deleteExpense = async (id) => {
@@ -123,7 +120,7 @@ export default function Dashboard() {
       await axios.delete(
         `https://daily-expense-log.onrender.com/api/expenses/${id}`,
         {
-          headers: { Authorization: token },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
       fetchExpenses();
