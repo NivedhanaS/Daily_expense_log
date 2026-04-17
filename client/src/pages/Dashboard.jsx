@@ -61,7 +61,7 @@ export default function Dashboard() {
           savingGoal: newGoal,
         },
         {
-          headers: { Authorization: token },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
@@ -112,7 +112,7 @@ export default function Dashboard() {
       fetchExpenses();
     } catch (err) {
       console.log("ADD ERROR:", err.response?.data || err.message 
-        
+
       );
     }
   };
