@@ -93,11 +93,15 @@ export default function Dashboard() {
 
   // 🔹 ADD EXPENSE
   const addExpense = async () => {
+
+
+    console.log("🔥 ADD HIT");
+
     try {
       await axios.post(
-        "https://daily-expense-log.onrender.com/api/expenses",
+        "https://daily-expense-log.onrender.com/api/expenses",data,
         { amount, category, note, date: new Date() },
-        { headers: { Authorization: token } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setAmount("");
