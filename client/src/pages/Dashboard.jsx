@@ -23,7 +23,7 @@ export default function Dashboard() {
   // 🔹 FETCH EXPENSES
   const fetchExpenses = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/expenses", {
+      const res = await axios.get("https://daily-expense-log.onrender.com/api/expenses", {
         headers: { Authorization: token },
       });
       setExpenses(res.data);
@@ -35,7 +35,7 @@ export default function Dashboard() {
   // 🔹 FETCH USER
   const fetchUser = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/user", {
+      const res = await axios.get("https://daily-expense-log.onrender.com/api/user", {
         headers: { Authorization: token },
       });
 
@@ -55,7 +55,7 @@ export default function Dashboard() {
   const saveUserData = async (newIncome, newGoal) => {
     try {
       const res = await axios.put(
-        "http://localhost:5000/api/user",
+        "https://daily-expense-log.onrender.com/api/user",
         {
           income: newIncome,
           savingGoal: newGoal,
@@ -95,7 +95,7 @@ export default function Dashboard() {
   const addExpense = async () => {
     try {
       await axios.post(
-        "http://localhost:5000/api/expenses",
+        "https://daily-expense-log.onrender.com/api/expenses",
         { amount, category, note, date: new Date() },
         { headers: { Authorization: token } }
       );
@@ -114,7 +114,7 @@ export default function Dashboard() {
   const deleteExpense = async (id) => {
     try {
       await axios.delete(
-        `http://localhost:5000/api/expenses/${id}`,
+        `https://daily-expense-log.onrender.com/api/expenses/${id}`,
         {
           headers: { Authorization: token },
         }

@@ -14,14 +14,14 @@ export default function Expenses() {
   }, []);
 
   const fetchExpenses = async () => {
-    const res = await axios.get("http://localhost:5000/api/expenses", {
+    const res = await axios.get("https://daily-expense-log.onrender.com/api/expenses", {
       headers: { Authorization: token },
     });
     setExpenses(res.data);
   };
 
   const deleteExpense = async (id) => {
-    await axios.delete(`http://localhost:5000/api/expenses/${id}`, {
+    await axios.delete(`https://daily-expense-log.onrender.com/api/expenses/${id}`, {
       headers: { Authorization: token },
     });
     fetchExpenses();

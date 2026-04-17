@@ -14,7 +14,7 @@ export default function Register() {
   const handleSubmit = async () => {
     try {
       await axios.post(
-        "http://localhost:5000/api/auth/register",
+        "https://daily-expense-log.onrender.com/api/auth/register",
         form
       );
 
